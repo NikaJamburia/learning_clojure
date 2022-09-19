@@ -1,11 +1,13 @@
-(ns learning-clojure.ttt.tic-tac-toe-core)
+(ns learning-clojure.ttt.tic-tac-toe-core
+  (:require [learning-clojure.core :refer :all]))
 
 (defn first-by [prec col]
   (first (filter prec col)))
 
 (defn yx [y x]
-  {:pre [(and (>= x 0) (<= x 2))
-         (and (>= y 0) (<= y 2))]}
+  {:pre [
+         (check-state #(and (>= x 0) (<= x 2)) "Coordinate values must be from 0 to 2")
+         (check-state #(and (>= y 0) (<= y 2)) "Coordinate values must be from 0 to 2")]}
   { :x x :y y})
 
 (defn find-in-grid [grid coordinates]

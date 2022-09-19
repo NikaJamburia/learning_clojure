@@ -4,8 +4,8 @@
 
 (deftest coordinates
   (testing "tic tac toe coordinates can't be less than 0 or more then 2"
-    (is (thrown? AssertionError (yx -1 2)))
-    (is (thrown? AssertionError (yx 0 3)))
+    (is (thrown-with-msg? IllegalStateException #"Coordinate values must be from 0 to 2" (yx -1 2)))
+    (is (thrown-with-msg? IllegalStateException #"Coordinate values must be from 0 to 2" (yx 0 3)))
     (is
       (= (yx 1 2) {:x 2 :y 1}))
     )
