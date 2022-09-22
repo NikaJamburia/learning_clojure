@@ -75,8 +75,7 @@
     (:z pt)))
 
 (defn project-triangle [tri]
-  (let [pts (:points tri)
-        points-2d (->> pts
+  (let [points-2d (->> (:points tri)
                        (map #(translate-point % (float 3)))
                        (map #(multiply-3d-point-by-matrix % projection-matrix))
                        (map #(scale-point %)))]
