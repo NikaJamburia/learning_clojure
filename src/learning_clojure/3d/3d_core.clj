@@ -9,14 +9,15 @@
 (def fov 90)
 (def fov-rad (/ 1 (Math/tan (* fov (* (float 3.14159) (/ 0.5 180))))))
 
-(def projection-matrix (let [m-0-0 (* aspect fov-rad)
-                             m-1-1 fov-rad
-                             m-2-2 (/ far (- far near))
-                             m-3-2 (/ (* (unchecked-negate far) near) (- far near))]
-                         [[m-0-0 0 0 0]
-                          [0 m-1-1 0 0]
-                          [0 0 m-2-2 1]
-                          [0 0 m-3-2 0]]))
+(def projection-matrix
+  (let [m-0-0 (* aspect fov-rad)
+        m-1-1 fov-rad
+        m-2-2 (/ far (- far near))
+        m-3-2 (/ (* (unchecked-negate far) near) (- far near))]
+    [[m-0-0 0 0 0]
+     [0 m-1-1 0 0]
+     [0 0 m-2-2 1]
+     [0 0 m-3-2 0]]))
 
 ; MODEL
 (defn point-3d [x y z]
@@ -65,10 +66,7 @@
       multiplied)))
 
 (defn translate-point [pt amount]
-  (let [new-z (+ amount (:z pt))]
-    {:x (:x pt)
-     :y (:y pt)
-     :z (float new-z)}))
+  (assoc pt :z (+ amount (:z pt))))
 
 (defn scale-point [pt]
   (point-3d

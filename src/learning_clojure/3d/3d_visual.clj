@@ -25,10 +25,9 @@
     (draw-line [(first tri-points) (second tri-points)] g)
     (draw-line [(second tri-points) (third tri-points)] g)
     (draw-line [(first tri-points) (third tri-points)] g)
-    (vec (map #(fill-point g (:x %) (:y %)) tri-points))
-    ))
+    (vec (map #(fill-point g (:x %) (:y %)) tri-points))))
 
-(defn canvas [mesh]
+(defn create-canvas [mesh]
   (proxy [JPanel] []
     (paintComponent [g]
                     (proxy-super paintComponent g)
@@ -38,18 +37,13 @@
 (defn mesh-to-display []
   (project-to-3d mesh-cube))
 
-(defn start []
+(defn -main[& args]
   (let [frame (new JFrame)
-        panel (canvas (mesh-to-display))]
+        canvas (create-canvas (mesh-to-display))]
     (.setPreferredSize frame (new Dimension (:width window-size) (:height window-size)))
     (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE)
-    (.setBackground panel (Color/BLACK))
-    (.add frame panel)
+    (.setBackground canvas (Color/BLACK))
+    (.add frame canvas)
     (.pack frame)
     (.setVisible frame true)
-    )
-)
-
-
-(defn -main[& args]
-  (start))
+    ))
