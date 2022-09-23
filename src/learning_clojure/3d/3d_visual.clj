@@ -37,9 +37,9 @@
                     (vec (map #(paint-triangle % g) (:triangles mesh))))
     (getPreferredSize [] (new Dimension (:width window-size) (:height window-size)))))
 
-(defn mesh-to-display [theta]
-  (-> mesh-cube
-      (rotate-mesh theta)
+(defn mesh-to-display [mesh rotation-theta]
+  (-> mesh
+      (rotate-mesh rotation-theta)
       (project-to-3d)))
 
 (defn repaint-canvas [top-panel canvas]
@@ -50,16 +50,17 @@
   (.add top-panel canvas)
   (.setVisible top-panel true))
 
-(defn repaint-action-listener [top-panel]
+(defn repaint-action-listener [top-panel mesh]
   (proxy [ActionListener] []
     (actionPerformed [e]
       (let [time-elapsed (/ (- (.getWhen e) start-millis) 1500)]
-        (repaint-canvas top-panel (create-canvas (mesh-to-display time-elapsed)))))))
+        (repaint-canvas top-panel (create-canvas (mesh-to-display mesh time-elapsed)))))))
 
 (defn -main[& args]
   (let [frame (new JFrame)
         top-panel (new JPanel)
-        canvas (create-canvas (mesh-to-display 1))
+        mesh mesh-cube
+        canvas (create-canvas (mesh-to-display mesh 1))
         timer (new Timer repaint-millis nil)]
     (.setPreferredSize frame (new Dimension (:width window-size) (:height window-size)))
     (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE)
@@ -69,6 +70,6 @@
     (.add frame top-panel)
     (.pack frame)
     (.setVisible frame true)
-    (.addActionListener timer (repaint-action-listener top-panel))
+    (.addActionListener timer (repaint-action-listener top-panel mesh))
     (.start timer)
     ))

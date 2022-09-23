@@ -27,3 +27,42 @@
                 (triangle [(point-3d 1 0 1) (point-3d 0 0 1) (point-3d 0 0 0)])
                 (triangle [(point-3d 1 0 1) (point-3d 0 0 0) (point-3d 1 0 0)])
                 ]))
+
+(def mesh-pyramid
+  (let [tip-coords 0.5
+        tip (point-3d tip-coords 1 tip-coords)]
+    (create-mesh [
+                  ;BOTTOM
+                  (triangle [(point-3d 1 0 1) (point-3d 0 0 1) (point-3d 0 0 0)])
+                  (triangle [(point-3d 1 0 1) (point-3d 0 0 0) (point-3d 1 0 0)])
+
+                  ;SOUTH
+                  (triangle [(point-3d 0 0 0) tip (point-3d 1 0 0)])
+
+                  ;EAST
+                  (triangle [(point-3d 1 0 0) tip (point-3d 1 0 1)])
+
+                  ;NORTH
+                  (triangle [(point-3d 1 0 1) tip (point-3d 0 0 1)])
+
+                  ;WEST
+                  (triangle [(point-3d 0 0 1) tip (point-3d 0 0 0)])
+                  ])))
+
+(def mesh-pyramid-triangular
+  (let [tip-coords 0.5
+        tip (point-3d tip-coords tip-coords tip-coords)]
+    (create-mesh [
+                  ;BOTTOM
+                  (triangle [(point-3d 0 0 0) (point-3d 0.5 0 1) (point-3d 1 0 0)])
+
+                  ;SOUTH
+                  (triangle [(point-3d 0 0 0) tip (point-3d 1 0 0)])
+
+                  ;EAST
+                  (triangle [(point-3d 1 0 0) tip (point-3d 0.5 0 1)])
+
+                  ;NORTH
+                  (triangle [(point-3d 0 0 0) tip (point-3d 0.5 0 1)])
+                  ])))
+
