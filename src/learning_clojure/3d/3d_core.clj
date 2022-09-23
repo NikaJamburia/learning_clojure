@@ -7,17 +7,38 @@
 (def far 1000)
 (def aspect (/ (:height window-size) (:width window-size)))
 (def fov 90)
+(def view-space-scale (/ far (- far near)))
 (def fov-rad (/ 1 (Math/tan (* fov (* (float 3.14159) (/ 0.5 180))))))
 
 (def projection-matrix
   (let [m-0-0 (* aspect fov-rad)
         m-1-1 fov-rad
-        m-2-2 (/ far (- far near))
-        m-3-2 (/ (* (unchecked-negate far) near) (- far near))]
+        m-2-2 view-space-scale
+        m-3-2 (unchecked-negate (* view-space-scale near))]
     [[m-0-0 0 0 0]
      [0 m-1-1 0 0]
      [0 0 m-2-2 1]
      [0 0 m-3-2 0]]))
+
+(defn rotation-matrix-x [theta]
+  (let [m-1-1 (Math/cos (* 0.5 theta))
+        m-1-2 (Math/sin (* 0.5 theta))
+        m-2-1 (unchecked-negate (Math/sin (* 0.5 theta)))
+        m-2-2 (Math/cos (* 0.5 theta))]
+    [[1 0     0     0]
+     [0 m-1-1 m-1-2 0]
+     [0 m-2-1 m-2-2 0]
+     [0 0     0     1]]))
+
+(defn rotation-matrix-z [theta]
+  (let [m-0-0 (Math/cos theta)
+        m-0-1 (Math/sin theta)
+        m-1-0 (unchecked-negate (Math/sin theta))
+        m-1-1 (Math/cos theta)]
+    [[m-0-0 m-0-1 0 0]
+     [m-1-0 m-1-1 0 0]
+     [0     0     1 0]
+     [0     0     0 1]]))
 
 ; MODEL
 (defn point-3d [x y z]
@@ -80,6 +101,16 @@
                        (map #(multiply-3d-point-by-matrix % projection-matrix))
                        (map #(scale-point %)))]
     (triangle (vec points-2d))))
+
+(defn rotate-triangle [tri theta]
+  (let [points-2d (->> (:points tri)
+                       (map #(multiply-3d-point-by-matrix % (rotation-matrix-z theta)))
+                       (map #(multiply-3d-point-by-matrix % (rotation-matrix-x theta)))
+                       )]
+    (triangle (vec points-2d))))
+
+(defn rotate-mesh [mesh theta]
+  (create-mesh (vec (map #(rotate-triangle % theta) (:triangles mesh)))))
 
 (defn project-to-3d [mesh]
   (create-mesh (vec (map #(project-triangle %) (:triangles mesh)))))

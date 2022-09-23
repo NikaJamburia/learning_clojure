@@ -1,12 +1,15 @@
 (ns learning-clojure.3d.3d-visual
   (:require [learning-clojure.3d.3d-core :refer :all]
             [learning-clojure.3d.3d-meshes :refer :all])
-  (:import (javax.swing JFrame JPanel)
-           (java.awt Dimension Color)))
+  (:import (javax.swing JFrame JPanel Timer)
+           (java.awt Dimension Color)
+           (java.awt.event ActionListener)))
 
 (def point-color (Color/RED))
 (def line-color (Color/WHITE))
 (def point-size 5)
+(def start-millis (System/currentTimeMillis))
+(def repaint-millis 30)
 
 (defn third [collection]
   (get collection 2))
@@ -34,16 +37,38 @@
                     (vec (map #(paint-triangle % g) (:triangles mesh))))
     (getPreferredSize [] (new Dimension (:width window-size) (:height window-size)))))
 
-(defn mesh-to-display []
-  (project-to-3d mesh-cube))
+(defn mesh-to-display [theta]
+  (-> mesh-cube
+      (rotate-mesh theta)
+      (project-to-3d)))
+
+(defn repaint-canvas [top-panel canvas]
+  (.removeAll top-panel)
+  (.revalidate top-panel)
+  (.repaint top-panel)
+  (.setBackground canvas (Color/BLACK))
+  (.add top-panel canvas)
+  (.setVisible top-panel true))
+
+(defn repaint-action-listener [top-panel]
+  (proxy [ActionListener] []
+    (actionPerformed [e]
+      (let [time-elapsed (/ (- (.getWhen e) start-millis) 1500)]
+        (repaint-canvas top-panel (create-canvas (mesh-to-display time-elapsed)))))))
 
 (defn -main[& args]
   (let [frame (new JFrame)
-        canvas (create-canvas (mesh-to-display))]
+        top-panel (new JPanel)
+        canvas (create-canvas (mesh-to-display 1))
+        timer (new Timer repaint-millis nil)]
     (.setPreferredSize frame (new Dimension (:width window-size) (:height window-size)))
     (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE)
     (.setBackground canvas (Color/BLACK))
-    (.add frame canvas)
+    (.setPreferredSize top-panel (new Dimension (:width window-size) (:height window-size)))
+    (.add top-panel canvas)
+    (.add frame top-panel)
     (.pack frame)
     (.setVisible frame true)
+    (.addActionListener timer (repaint-action-listener top-panel))
+    (.start timer)
     ))
