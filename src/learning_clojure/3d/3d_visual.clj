@@ -11,9 +11,6 @@
 (def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
 
-(defn third [collection]
-  (get collection 2))
-
 (defn fill-point [g x y]
   (.setColor g point-color)
   (.fillRect g x y point-size point-size)

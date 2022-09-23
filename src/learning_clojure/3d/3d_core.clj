@@ -57,8 +57,13 @@
 (defn m [matrix i1 i2]
   (get (get matrix i1) i2))
 
+(defn third [collection]
+  (get collection 2))
+
 
 ; CALCULATIONS
+(def camera (point-3d 0 0 0))
+
 (defn multiply-3d-point-by-matrix [pt matrix]
   (let [w (+
             (* (:x pt) (m matrix 0 3))
@@ -95,12 +100,56 @@
     (* (inc (:y pt)) (* 0.5 (:height window-size)))
     (:z pt)))
 
+(defn calc-normal [point1 point2]
+  (point-3d
+    (- (:x point1) (:x point2))
+    (- (:y point1) (:y point2))
+    (- (:z point1) (:z point2))))
+
+(defn calc-cross-product [normal1 normal2]
+  (point-3d
+    (- (* (:y normal1) (:z normal2)) (* (:z normal1) (:y normal2)))
+    (- (* (:z normal1) (:x normal2)) (* (:x normal1) (:z normal2)))
+    (- (* (:x normal1) (:y normal2)) (* (:y normal1) (:x normal2)))))
+
+(defn square [n]
+  (* n n))
+
+(defn normalize [cross-product]
+  (let [length (Math/sqrt (+ (square (:x cross-product)) (square (:y cross-product)) (square (:z cross-product)) ))]
+    (point-3d
+      (/ (:x cross-product) length)
+      (/ (:y cross-product) length)
+      (/ (:z cross-product) length))))
+
+(defn subtract-camera [pt]
+  (point-3d (- (:x pt) (:x camera)) (- (:y pt) (:y camera)) (- (:z pt) (:z camera))))
+
+(defn dot-product [p1 p2]
+  (let [camera-subtracted (subtract-camera p2)]
+    (+
+      (* (:x p1) (:x camera-subtracted))
+      (* (:y p1) (:y camera-subtracted))
+      (* (:z p1) (:z camera-subtracted))
+      )))
+
+(defn is-visible? [triangle]
+  (let [pts (:points triangle)
+        normal1 (calc-normal (second pts) (first pts))
+        normal2 (calc-normal (third pts) (first pts))
+        cross-product (normalize (calc-cross-product normal1 normal2))
+        dot-pr (dot-product cross-product (first pts))]
+    (neg? dot-pr)))
+
+(defn translate-triangle [tri]
+  (triangle (vec (map #(translate-point % (float 3)) (:points tri)))))
+
 (defn project-triangle [tri]
-  (let [points-2d (->> (:points tri)
-                       (map #(translate-point % (float 3)))
+  (let [translated (translate-triangle tri)
+        points-2d (->> (:points translated)
                        (map #(multiply-3d-point-by-matrix % projection-matrix))
                        (map #(scale-point %)))]
-    (triangle (vec points-2d))))
+    (if (is-visible? translated) (triangle (vec points-2d)) tri)))
 
 (defn rotate-triangle [tri theta]
   (let [points-2d (->> (:points tri)
