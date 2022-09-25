@@ -1,35 +1,37 @@
 (ns learning-clojure.3d.3d-import
   (:require [learning-clojure.3d.3d-core :refer :all]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [learning-clojure.3d.3d-util :refer :all]))
 
 (defn parse-obj-line [line]
   (let [split (str/split line #" ")
         just-nums (subvec split 1)]
     (vec (map #(Float/parseFloat %) just-nums))))
 
-(defn collect-vertices [lines]
+(defn collect-vectors [lines]
   (->> lines
           (filter #(str/starts-with? % "v"))
           (map #(parse-obj-line %))
-          (map #(point-3d
+          (map #(vector-3d
                   (first %)
                   (second %)
-                  (third % )))))
+                  (third % )))
+          (vec)))
 
-(defn get-points [indexes points]
-  (vec (map #(get points (dec (int %))) indexes)))
+(defn get-vectors [indexes vectors]
+  (vec (map #(get vectors (dec (int %))) indexes)))
 
-(defn collect-triangles [lines points]
+(defn collect-triangles [lines vectors]
   (->> lines
        (filter #(str/starts-with? % "f"))
        (map #(parse-obj-line %))
-       (map #(get-points % points))
-       (map #(triangle %))))
+       (map #(get-vectors % vectors))
+       (map #(create-triangle %))))
 
 (defn import-mesh-from [filename]
   (with-open [file (io/reader (io/input-stream (io/resource filename)))]
     (let [lines (line-seq file)
-          points (collect-vertices lines)
-          tris (collect-triangles lines (vec points))]
+          vectors (collect-vectors lines)
+          tris (collect-triangles lines vectors)]
       (create-mesh (vec tris)))))

@@ -1,5 +1,6 @@
 (ns learning-clojure.3d.3d-core
-  (:require [learning-clojure.core :refer :all]))
+  (:require [learning-clojure.core :refer :all]
+            [learning-clojure.3d.3d-util :refer :all]))
 
 ; CONFIG
 (def window-size {:width 1024 :height 768})
@@ -7,9 +8,25 @@
 (def far 1000)
 (def aspect (/ (:height window-size) (:width window-size)))
 (def fov 90)
+(def translate-z-by (float 8))
 (def view-space-scale (/ far (- far near)))
 (def fov-rad (/ 1 (Math/tan (* fov (* (float 3.14159) (/ 0.5 180))))))
 
+; MODEL
+(defn vector-3d [x y z]
+  {:pre [(check-state #(number? x) (str "All coordinates must be numbers" z))
+         (check-state #(number? y) (str "All coordinates must be numbers" z))
+         (check-state #(number? z) (str "All coordinates must be numbers" z))]}
+  {:x x :y y :z z})
+
+(defn create-triangle [vectors]
+  {:pre [(check-state #(= 3 (count vectors)) "Triangle must have 3 vectors!")]}
+  {:vectors vectors})
+
+(defn create-mesh [triangles]
+  {:triangles triangles})
+
+; MATRIX
 (def projection-matrix
   (let [m-0-0 (* aspect fov-rad)
         m-1-1 fov-rad
@@ -40,50 +57,30 @@
      [0     0     1 0]
      [0     0     0 1]]))
 
-; MODEL
-(defn point-3d [x y z]
-  {:pre [(check-state #(number? x) (str "All coordinates must be numbers" z))
-         (check-state #(number? y) (str "All coordinates must be numbers" z))
-         (check-state #(number? z) (str "All coordinates must be numbers" z))]}
-  {:x x :y y :z z})
-
-(defn triangle [points]
-  {:pre [(check-state #(= 3 (count points)) "Triangle must have 3 points!")]}
-  {:points points})
-
-(defn create-mesh [triangles]
-  {:triangles triangles})
-
-(defn m [matrix i1 i2]
-  (get (get matrix i1) i2))
-
-(defn third [collection]
-  (get collection 2))
-
 
 ; CALCULATIONS
-(def camera (point-3d 0 0 0))
+(def camera (vector-3d 0 0 0))
 
-(defn multiply-3d-point-by-matrix [pt matrix]
+(defn multiply-3d-vector-by-matrix [vector matrix]
   (let [w (+
-            (* (:x pt) (m matrix 0 3))
-            (* (:y pt) (m matrix 1 3))
-            (* (:z pt) (m matrix 2 3))
+            (* (:x vector) (m matrix 0 3))
+            (* (:y vector) (m matrix 1 3))
+            (* (:z vector) (m matrix 2 3))
             (m matrix 3 3))
         multiplied {:x (+
-                         (* (:x pt) (m matrix 0 0))
-                         (* (:y pt) (m matrix 1 0))
-                         (* (:z pt) (m matrix 2 0))
+                         (* (:x vector) (m matrix 0 0))
+                         (* (:y vector) (m matrix 1 0))
+                         (* (:z vector) (m matrix 2 0))
                          (m matrix 3 0))
                     :y (+
-                         (* (:x pt) (m matrix 0 1))
-                         (* (:y pt) (m matrix 1 1))
-                         (* (:z pt) (m matrix 2 1))
+                         (* (:x vector) (m matrix 0 1))
+                         (* (:y vector) (m matrix 1 1))
+                         (* (:z vector) (m matrix 2 1))
                          (m matrix 3 1))
                     :z (+
-                         (* (:x pt) (m matrix 0 2))
-                         (* (:y pt) (m matrix 1 2))
-                         (* (:z pt) (m matrix 2 2))
+                         (* (:x vector) (m matrix 0 2))
+                         (* (:y vector) (m matrix 1 2))
+                         (* (:z vector) (m matrix 2 2))
                          (m matrix 3 2))}]
     (if (not= 0 w)
       {:x (/ (:x multiplied) w)
@@ -91,104 +88,98 @@
        :z (/ (:z multiplied) w)}
       multiplied)))
 
-(defn translate-point [pt amount]
-  (assoc pt :z (+ amount (:z pt))))
+(defn translate-z [vec-3d amount]
+  (assoc vec-3d :z (+ amount (:z vec-3d))))
 
-(defn scale-point [pt]
-  (point-3d
-    (* (inc (:x pt)) (* 0.5 (:width window-size)))
-    (* (inc (:y pt)) (* 0.5 (:height window-size)))
-    (:z pt)))
+(defn scale-vector [vector]
+  (assoc vector
+    :x (* (inc (:x vector)) (* 0.5 (:width window-size)))
+    :y (* (inc (:y vector)) (* 0.5 (:height window-size)))))
 
-(defn calc-normal [point1 point2]
-  (point-3d
-    (- (:x point1) (:x point2))
-    (- (:y point1) (:y point2))
-    (- (:z point1) (:z point2))))
+(defn vector-subtract [vec1 vec2]
+  (vector-3d
+    (- (:x vec1) (:x vec2))
+    (- (:y vec1) (:y vec2))
+    (- (:z vec1) (:z vec2))))
 
-(defn calc-cross-product [normal1 normal2]
-  (point-3d
-    (- (* (:y normal1) (:z normal2)) (* (:z normal1) (:y normal2)))
-    (- (* (:z normal1) (:x normal2)) (* (:x normal1) (:z normal2)))
-    (- (* (:x normal1) (:y normal2)) (* (:y normal1) (:x normal2)))))
+(defn calc-cross-product [vec1 vec2]
+  (vector-3d
+    (- (* (:y vec1) (:z vec2)) (* (:z vec1) (:y vec2)))
+    (- (* (:z vec1) (:x vec2)) (* (:x vec1) (:z vec2)))
+    (- (* (:x vec1) (:y vec2)) (* (:y vec1) (:x vec2)))))
 
-(defn square [n]
-  (* n n))
+(defn normalize [vector]
+  (let [length (Math/sqrt (+ (square (:x vector)) (square (:y vector)) (square (:z vector)) ))]
+    (assoc vector
+      :x (/ (:x vector) length)
+      :y (/ (:y vector) length)
+      :z (/ (:z vector) length))))
 
-(defn normalize [point]
-  (let [length (Math/sqrt (+ (square (:x point)) (square (:y point)) (square (:z point)) ))]
-    (point-3d
-      (/ (:x point) length)
-      (/ (:y point) length)
-      (/ (:z point) length))))
-
-(defn subtract-camera [pt]
-  (point-3d (- (:x pt) (:x camera)) (- (:y pt) (:y camera)) (- (:z pt) (:z camera))))
-
-(defn calculate-dot-product [p1 p2]
-  (let [camera-subtracted (subtract-camera p2)]
-    (+
-      (* (:x p1) (:x camera-subtracted))
-      (* (:y p1) (:y camera-subtracted))
-      (* (:z p1) (:z camera-subtracted))
-      )))
+(defn calculate-dot-product [vec1 vec2]
+  (+
+    (* (:x vec1) (:x vec2))
+    (* (:y vec1) (:y vec2))
+    (* (:z vec1) (:z vec2))))
 
 (defn calculate-triangle-normal [tri]
-  (let [pts (:points tri)
-        normal1 (calc-normal (second pts) (first pts))
-        normal2 (calc-normal (third pts) (first pts))]
-    (normalize (calc-cross-product normal1 normal2))))
+  (let [vectors (:vectors tri)
+        line1 (vector-subtract (second vectors) (first vectors))
+        line2 (vector-subtract (third vectors) (first vectors))]
+    (normalize (calc-cross-product line1 line2))))
 
 (defn is-visible? [triangle]
-  (let [pts (:points triangle)
+  (let [vectors (:vectors triangle)
         normal (calculate-triangle-normal triangle)
-        dot-pr (calculate-dot-product normal (first pts))]
+        dot-pr (calculate-dot-product normal (vector-subtract (first vectors) camera))]
     (neg? dot-pr)))
 
 (defn get-lighting [tri]
-  (let [light-direction (normalize (point-3d 0 0 01))
+  (let [light-direction (normalize (vector-3d 0 0 1))
         triangle-normal (calculate-triangle-normal tri)
         dot-pr (calculate-dot-product triangle-normal light-direction)]
     dot-pr))
 
 (defn translate-triangle [tri]
-  (triangle (vec (map #(translate-point % (float 8)) (:points tri)))))
+  (create-triangle (vec (map #(translate-z % translate-z-by) (:vectors tri)))))
 
 (defn get-midpoint [tri]
-  (let [pts (:points tri)
+  (let [vectors (:vectors tri)
         coords-sum (+
-                     (:z (first pts))
-                     (:z (second pts))
-                     (:z (third pts)))]
+                     (:z (first vectors))
+                     (:z (second vectors))
+                     (:z (third vectors)))]
     (/ coords-sum 3)))
 
-(defn compare-triangle-midpoint-z [tri1 tri2]
+(defn compare-triangles-by-z [tri1 tri2]
   (> (get-midpoint tri1) (get-midpoint tri2)))
 
 (defn project-triangle [tri]
   (let [translated (translate-triangle tri)
         lighting-value (get-lighting translated)
-        points-2d (->> (:points translated)
-                       (map #(multiply-3d-point-by-matrix % projection-matrix))
-                       (map #(scale-point %)))]
+        vecs-2d (->> (:vectors translated)
+                       (map #(multiply-3d-vector-by-matrix % projection-matrix))
+                       (map #(scale-vector %)))]
     (if (is-visible? translated)
-      (assoc tri :points (vec points-2d) :lighting lighting-value)
+      (assoc tri :vectors (vec vecs-2d) :lighting lighting-value)
       (assoc tri :lighting lighting-value))))
 
 (defn rotate-triangle [tri theta]
-  (let [points-2d (->> (:points tri)
-                       (map #(multiply-3d-point-by-matrix % (rotation-matrix-z theta)))
-                       (map #(multiply-3d-point-by-matrix % (rotation-matrix-x theta)))
-                       )]
-    (assoc tri :points (vec points-2d))))
+  (let [vectors-2d (->> (:vectors tri)
+                       (map #(multiply-3d-vector-by-matrix % (rotation-matrix-z theta)))
+                       (map #(multiply-3d-vector-by-matrix % (rotation-matrix-x theta)))
+                       (vec))]
+    (assoc tri :vectors vectors-2d)))
 
 (defn rotate-mesh [mesh theta]
-  (create-mesh (vec (map #(rotate-triangle % theta) (:triangles mesh)))))
+  (let [rotated (->> (:triangles mesh)
+                     (map #(rotate-triangle % theta))
+                     (vec))]
+    (assoc mesh :triangles rotated)))
 
 (defn project-to-3d [mesh]
   (let [tris (:triangles mesh)
         processed (->> tris
                        (map #(project-triangle %))
-                       (sort #(compare-triangle-midpoint-z %1 %2))
+                       (sort #(compare-triangles-by-z %1 %2))
                        (vec))]
-    (create-mesh processed)))
+    (assoc mesh :triangles processed)))

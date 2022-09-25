@@ -4,65 +4,65 @@
 (def mesh-cube
   (create-mesh [
                 ;SOUTH
-                (triangle [(point-3d 0 0 0) (point-3d 0 1 0) (point-3d 1 1 0)])
-                (triangle [(point-3d 0 0 0) (point-3d 1 1 0) (point-3d 1 0 0)])
+                (create-triangle [(vector-3d 0 0 0) (vector-3d 0 1 0) (vector-3d 1 1 0)])
+                (create-triangle [(vector-3d 0 0 0) (vector-3d 1 1 0) (vector-3d 1 0 0)])
 
                 ;EAST
-                (triangle [(point-3d 1 0 0) (point-3d 1 1 0) (point-3d 1 1 1)])
-                (triangle [(point-3d 1 0 0) (point-3d 1 1 1) (point-3d 1 0 1)])
+                (create-triangle [(vector-3d 1 0 0) (vector-3d 1 1 0) (vector-3d 1 1 1)])
+                (create-triangle [(vector-3d 1 0 0) (vector-3d 1 1 1) (vector-3d 1 0 1)])
 
                 ;NORTH
-                (triangle [(point-3d 1 0 1) (point-3d 1 1 1) (point-3d 0 1 1)])
-                (triangle [(point-3d 1 0 1) (point-3d 0 1 1) (point-3d 0 0 1)])
+                (create-triangle [(vector-3d 1 0 1) (vector-3d 1 1 1) (vector-3d 0 1 1)])
+                (create-triangle [(vector-3d 1 0 1) (vector-3d 0 1 1) (vector-3d 0 0 1)])
 
                 ;WEST
-                (triangle [(point-3d 0 0 1) (point-3d 0 1 1) (point-3d 0 1 0)])
-                (triangle [(point-3d 0 0 1) (point-3d 0 1 0) (point-3d 0 0 0)])
+                (create-triangle [(vector-3d 0 0 1) (vector-3d 0 1 1) (vector-3d 0 1 0)])
+                (create-triangle [(vector-3d 0 0 1) (vector-3d 0 1 0) (vector-3d 0 0 0)])
 
                 ;TOP
-                (triangle [(point-3d 0 1 0) (point-3d 0 1 1) (point-3d 1 1 1)])
-                (triangle [(point-3d 0 1 0) (point-3d 1 1 1) (point-3d 1 1 0)])
+                (create-triangle [(vector-3d 0 1 0) (vector-3d 0 1 1) (vector-3d 1 1 1)])
+                (create-triangle [(vector-3d 0 1 0) (vector-3d 1 1 1) (vector-3d 1 1 0)])
 
                 ;BOTTOM
-                (triangle [(point-3d 1 0 1) (point-3d 0 0 1) (point-3d 0 0 0)])
-                (triangle [(point-3d 1 0 1) (point-3d 0 0 0) (point-3d 1 0 0)])
+                (create-triangle [(vector-3d 1 0 1) (vector-3d 0 0 1) (vector-3d 0 0 0)])
+                (create-triangle [(vector-3d 1 0 1) (vector-3d 0 0 0) (vector-3d 1 0 0)])
                 ]))
 
 (def mesh-pyramid
   (let [tip-coords 0.5
-        tip (point-3d tip-coords 1 tip-coords)]
+        tip (vector-3d tip-coords 1 tip-coords)]
     (create-mesh [
                   ;BOTTOM
-                  (triangle [(point-3d 1 0 1) (point-3d 0 0 1) (point-3d 0 0 0)])
-                  (triangle [(point-3d 1 0 1) (point-3d 0 0 0) (point-3d 1 0 0)])
+                  (create-triangle [(vector-3d 1 0 1) (vector-3d 0 0 1) (vector-3d 0 0 0)])
+                  (create-triangle [(vector-3d 1 0 1) (vector-3d 0 0 0) (vector-3d 1 0 0)])
 
                   ;SOUTH
-                  (triangle [(point-3d 0 0 0) tip (point-3d 1 0 0)])
+                  (create-triangle [(vector-3d 0 0 0) tip (vector-3d 1 0 0)])
 
                   ;EAST
-                  (triangle [(point-3d 1 0 0) tip (point-3d 1 0 1)])
+                  (create-triangle [(vector-3d 1 0 0) tip (vector-3d 1 0 1)])
 
                   ;NORTH
-                  (triangle [(point-3d 1 0 1) tip (point-3d 0 0 1)])
+                  (create-triangle [(vector-3d 1 0 1) tip (vector-3d 0 0 1)])
 
                   ;WEST
-                  (triangle [(point-3d 0 0 1) tip (point-3d 0 0 0)])
+                  (create-triangle [(vector-3d 0 0 1) tip (vector-3d 0 0 0)])
                   ])))
 
 (def mesh-pyramid-triangular
   (let [tip-coords 0.25
-        tip (point-3d tip-coords 1 tip-coords)]
+        tip (vector-3d tip-coords 1 tip-coords)]
     (create-mesh [
                   ;BOTTOM
-                  (triangle [(point-3d 0.5 0 0.5) (point-3d 0 0 0) (point-3d 1 0 0)])
+                  (create-triangle [(vector-3d 0.5 0 0.5) (vector-3d 0 0 0) (vector-3d 1 0 0)])
 
                   ;SOUTH
-                  (triangle [(point-3d 1 0 0) tip (point-3d 0 0 0)])
+                  (create-triangle [(vector-3d 1 0 0) tip (vector-3d 0 0 0)])
 
                   ;EAST
-                  (triangle [(point-3d 0.5 0 0.5) tip (point-3d 1 0 0)])
+                  (create-triangle [(vector-3d 0.5 0 0.5) tip (vector-3d 1 0 0)])
 
                   ;NORTH
-                  (triangle [(point-3d 0 0 0) tip (point-3d 0.5 0 0.5)])
+                  (create-triangle [(vector-3d 0 0 0) tip (vector-3d 0.5 0 0.5)])
                   ])))
 

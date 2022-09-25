@@ -1,32 +1,15 @@
-(ns learning-clojure.3d.3d-visual
+(ns learning-clojure.3d.3d-display
   (:require [learning-clojure.3d.3d-core :refer :all]
             [learning-clojure.3d.3d-meshes :refer :all]
-            [learning-clojure.3d.3d-import :refer :all])
+            [learning-clojure.3d.3d-import :refer :all]
+            [learning-clojure.3d.3d-util :refer :all])
   (:import (javax.swing JFrame JPanel Timer)
            (java.awt Dimension Color Polygon)
            (java.awt.event ActionListener)))
 
-(def point-color (Color/RED))
-(def line-color (Color/WHITE))
-(def point-size 5)
 (def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
-
-(defn fill-point [g x y]
-  (.setColor g point-color)
-  (.fillRect g x y point-size point-size)
-  ())
-
-(defn draw-line [points g]
-  (.setColor g line-color)
-  (.drawLine g (:x (first points)) (:y (first points)) (:x (second points)) (:y (second points))))
-
-(defn paint-triangle [triangle g]
-  (let [tri-points (:points triangle)]
-    (draw-line [(first tri-points) (second tri-points)] g)
-    (draw-line [(second tri-points) (third tri-points)] g)
-    (draw-line [(first tri-points) (third tri-points)] g)
-    (vec (map #(fill-point g (:x %) (:y %)) tri-points))))
+(def mesh-color (new Color 62 126 88))
 
 (defn adjust-color-part [part lighting]
   (let [abs-value (Math/abs (float lighting))
@@ -35,27 +18,26 @@
 
 (defn adjust-color [color lighting]
   (if (neg? lighting)
-    (let [value (int (Math/ceil (* (Math/abs (float lighting)) 255)))]
-      (new Color
-           (adjust-color-part (.getRed color) lighting)
-           (adjust-color-part (.getGreen color) lighting)
-           (adjust-color-part (.getBlue color) lighting)))
+    (new Color
+         (adjust-color-part (.getRed color) lighting)
+         (adjust-color-part (.getGreen color) lighting)
+         (adjust-color-part (.getBlue color) lighting))
     (Color/BLACK)))
 
 
 (defn fill-triangle [triangle g]
-  (let [xs (int-array (map #(:x %) (:points triangle)))
-        ys (int-array (map #(:y %) (:points triangle)))
+  (let [xs (int-array (map #(:x %) (:vectors triangle)))
+        ys (int-array (map #(:y %) (:vectors triangle)))
         poly (new Polygon xs ys 3)
-        color (adjust-color (new Color 62 126 88) (:lighting triangle))]
+        color (adjust-color mesh-color (:lighting triangle))]
     (.setColor g color)
     (.fillPolygon g poly)))
 
 (defn create-canvas [mesh]
   (proxy [JPanel] []
     (paintComponent [g]
-                    (proxy-super paintComponent g)
-                    (vec (map #(fill-triangle % g) (:triangles mesh))))
+      (proxy-super paintComponent g)
+      (vec (map #(fill-triangle % g) (:triangles mesh))))
     (getPreferredSize [] (new Dimension (:width window-size) (:height window-size)))))
 
 (defn mesh-to-display [mesh rotation-theta]

@@ -8,7 +8,7 @@
 (deftest collect-vertices-test
   (testing "all lines starting with 'v ' are collected"
     (let [lines (get-lines "test-obj.obj")
-          result (vec (collect-vertices lines))]
+          result (vec (collect-vectors lines))]
       (is (= 6 (count result)))
       (are [a x y z] (and
                    (= (:x a) x)
@@ -25,28 +25,28 @@
 (deftest collect-triangles-test
   (testing "all lines starting with 'f ' are collected"
     (let [lines (get-lines "test-obj.obj")
-          result (vec (collect-triangles lines (vec (collect-vertices lines))))]
+          result (vec (collect-triangles lines (vec (collect-vectors lines))))]
       (is (= 2 (count result)))
-      (are [a pts] (= (:points a) pts)
-                     (get result 0) [(point-3d 1.000000 -1.000000 -1.000000)
-                                     (point-3d 1.000000 1.000000 -1.000000)
-                                     (point-3d 1.000000 -1.000000 1.000000)]
+      (are [a pts] (= (:vectors a) pts)
+                   (get result 0) [(vector-3d 1.000000 -1.000000 -1.000000)
+                                     (vector-3d 1.000000 1.000000 -1.000000)
+                                     (vector-3d 1.000000 -1.000000 1.000000)]
 
-                     (get result 1) [(point-3d 1.000000 1.000000 1.000000)
-                                     (point-3d -1.000000 -1.000000 -1.000000)
-                                     (point-3d -1.000000 1.000000 -1.000000)])
+                   (get result 1) [(vector-3d 1.000000 1.000000 1.000000)
+                                     (vector-3d -1.000000 -1.000000 -1.000000)
+                                     (vector-3d -1.000000 1.000000 -1.000000)])
       )))
 
 (deftest import-test
   (testing "takes all the data from obj file and creates a mesh"
     (let [result (import-mesh-from "test-obj.obj")]
       (is (= 2 (count (:triangles result))))
-      (are [a pts] (= (:points a) pts)
-                   (get (:triangles result) 0) [(point-3d 1.000000 -1.000000 -1.000000)
-                                   (point-3d 1.000000 1.000000 -1.000000)
-                                   (point-3d 1.000000 -1.000000 1.000000)]
+      (are [a pts] (= (:vectors a) pts)
+                   (get (:triangles result) 0) [(vector-3d 1.000000 -1.000000 -1.000000)
+                                   (vector-3d 1.000000 1.000000 -1.000000)
+                                   (vector-3d 1.000000 -1.000000 1.000000)]
 
-                   (get (:triangles result) 1) [(point-3d 1.000000 1.000000 1.000000)
-                                   (point-3d -1.000000 -1.000000 -1.000000)
-                                   (point-3d -1.000000 1.000000 -1.000000)])
+                   (get (:triangles result) 1) [(vector-3d 1.000000 1.000000 1.000000)
+                                   (vector-3d -1.000000 -1.000000 -1.000000)
+                                   (vector-3d -1.000000 1.000000 -1.000000)])
       )))
