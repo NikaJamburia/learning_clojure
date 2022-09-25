@@ -2,7 +2,7 @@
   (:require [learning-clojure.3d.3d-core :refer :all]
             [learning-clojure.3d.3d-meshes :refer :all])
   (:import (javax.swing JFrame JPanel Timer)
-           (java.awt Dimension Color)
+           (java.awt Dimension Color Polygon)
            (java.awt.event ActionListener)))
 
 (def point-color (Color/RED))
@@ -27,11 +27,34 @@
     (draw-line [(first tri-points) (third tri-points)] g)
     (vec (map #(fill-point g (:x %) (:y %)) tri-points))))
 
+(defn adjust-color-part [part lighting]
+  (let [abs-value (Math/abs (float lighting))
+        multiplied (Math/ceil (* abs-value part))]
+    (if (> multiplied 255) 255 (int multiplied))))
+
+(defn adjust-color [color lighting]
+  (if (neg? lighting)
+    (let [value (int (Math/ceil (* (Math/abs (float lighting)) 255)))]
+      (new Color
+           (adjust-color-part (.getRed color) lighting)
+           (adjust-color-part (.getGreen color) lighting)
+           (adjust-color-part (.getBlue color) lighting)))
+    (Color/BLACK)))
+
+
+(defn fill-triangle [triangle g]
+  (let [xs (int-array (map #(:x %) (:points triangle)))
+        ys (int-array (map #(:y %) (:points triangle)))
+        poly (new Polygon xs ys 3)
+        color (adjust-color (new Color 62 126 88) (:lighting triangle))]
+    (.setColor g color)
+    (.fillPolygon g poly)))
+
 (defn create-canvas [mesh]
   (proxy [JPanel] []
     (paintComponent [g]
                     (proxy-super paintComponent g)
-                    (vec (map #(paint-triangle % g) (:triangles mesh))))
+                    (vec (map #(fill-triangle % g) (:triangles mesh))))
     (getPreferredSize [] (new Dimension (:width window-size) (:height window-size)))))
 
 (defn mesh-to-display [mesh rotation-theta]
@@ -57,7 +80,7 @@
   (let [frame (new JFrame)
         top-panel (new JPanel)
         mesh mesh-cube
-        canvas (create-canvas (mesh-to-display mesh 1))
+        canvas (create-canvas (mesh-to-display mesh 0))
         timer (new Timer repaint-millis nil)]
     (.setPreferredSize frame (new Dimension (:width window-size) (:height window-size)))
     (.setDefaultCloseOperation frame JFrame/EXIT_ON_CLOSE)

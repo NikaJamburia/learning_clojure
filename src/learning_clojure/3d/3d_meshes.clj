@@ -50,19 +50,19 @@
                   ])))
 
 (def mesh-pyramid-triangular
-  (let [tip-coords 0.5
-        tip (point-3d tip-coords tip-coords tip-coords)]
+  (let [tip-coords 0.25
+        tip (point-3d tip-coords 1 tip-coords)]
     (create-mesh [
                   ;BOTTOM
-                  (triangle [(point-3d 0 0 0) (point-3d 0.5 0 1) (point-3d 1 0 0)])
+                  (triangle [(point-3d 0.5 0 0.5) (point-3d 0 0 0) (point-3d 1 0 0)])
 
                   ;SOUTH
-                  (triangle [(point-3d 0 0 0) tip (point-3d 1 0 0)])
+                  (triangle [(point-3d 1 0 0) tip (point-3d 0 0 0)])
 
                   ;EAST
-                  (triangle [(point-3d 1 0 0) tip (point-3d 0.5 0 1)])
+                  (triangle [(point-3d 0.5 0 0.5) tip (point-3d 1 0 0)])
 
                   ;NORTH
-                  (triangle [(point-3d 0 0 0) tip (point-3d 0.5 0 1)])
+                  (triangle [(point-3d 0 0 0) tip (point-3d 0.5 0 0.5)])
                   ])))
 
