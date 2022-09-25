@@ -42,9 +42,9 @@
 
 ; MODEL
 (defn point-3d [x y z]
-  {:pre [(check-state #(number? x) "All coordinates must be numbers")
-         (check-state #(number? y) "All coordinates must be numbers")
-         (check-state #(number? z) "All coordinates must be numbers")]}
+  {:pre [(check-state #(number? x) (str "All coordinates must be numbers" z))
+         (check-state #(number? y) (str "All coordinates must be numbers" z))
+         (check-state #(number? z) (str "All coordinates must be numbers" z))]}
   {:x x :y y :z z})
 
 (defn triangle [points]
@@ -152,7 +152,18 @@
     dot-pr))
 
 (defn translate-triangle [tri]
-  (triangle (vec (map #(translate-point % (float 3)) (:points tri)))))
+  (triangle (vec (map #(translate-point % (float 8)) (:points tri)))))
+
+(defn get-midpoint [tri]
+  (let [pts (:points tri)
+        coords-sum (+
+                     (:z (first pts))
+                     (:z (second pts))
+                     (:z (third pts)))]
+    (/ coords-sum 3)))
+
+(defn compare-triangle-midpoint-z [tri1 tri2]
+  (> (get-midpoint tri1) (get-midpoint tri2)))
 
 (defn project-triangle [tri]
   (let [translated (translate-triangle tri)
@@ -175,4 +186,9 @@
   (create-mesh (vec (map #(rotate-triangle % theta) (:triangles mesh)))))
 
 (defn project-to-3d [mesh]
-  (create-mesh (vec (map #(project-triangle %) (:triangles mesh)))))
+  (let [tris (:triangles mesh)
+        processed (->> tris
+                       (map #(project-triangle %))
+                       (sort #(compare-triangle-midpoint-z %1 %2))
+                       (vec))]
+    (create-mesh processed)))

@@ -1,6 +1,7 @@
 (ns learning-clojure.3d.3d-visual
   (:require [learning-clojure.3d.3d-core :refer :all]
-            [learning-clojure.3d.3d-meshes :refer :all])
+            [learning-clojure.3d.3d-meshes :refer :all]
+            [learning-clojure.3d.3d-import :refer :all])
   (:import (javax.swing JFrame JPanel Timer)
            (java.awt Dimension Color Polygon)
            (java.awt.event ActionListener)))
@@ -79,6 +80,7 @@
 (defn -main[& args]
   (let [frame (new JFrame)
         top-panel (new JPanel)
+        ;mesh (import-mesh-from "teapot.obj")
         mesh mesh-cube
         canvas (create-canvas (mesh-to-display mesh 0))
         timer (new Timer repaint-millis nil)]
