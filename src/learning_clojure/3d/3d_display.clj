@@ -2,6 +2,8 @@
   (:require [learning-clojure.3d.3d-core :refer :all]
             [learning-clojure.3d.3d-meshes :refer :all]
             [learning-clojure.3d.3d-import :refer :all]
+            [learning-clojure.3d.3d-projection :refer :all]
+            [learning-clojure.3d.3d-rotation :refer :all]
             [learning-clojure.3d.3d-util :refer :all])
   (:import (javax.swing JFrame JPanel Timer)
            (java.awt Dimension Color Polygon Toolkit)
@@ -10,6 +12,7 @@
 (def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
 (def mesh-color (new Color 62 126 88))
+(def display-wireframe false)
 
 (defn adjust-color-part [part lighting]
   (let [abs-value (Math/abs (float lighting))
@@ -24,12 +27,16 @@
          (adjust-color-part (.getBlue color) lighting))
     (Color/BLACK)))
 
+(defn draw-wireframe [g poly]
+  (.setColor g (Color/BLACK))
+  (.drawPolygon g poly))
 
 (defn fill-triangle [triangle g]
   (let [xs (int-array (map #(:x %) (:vectors triangle)))
         ys (int-array (map #(:y %) (:vectors triangle)))
         poly (new Polygon xs ys 3)
         color (adjust-color mesh-color (:lighting triangle))]
+    (if (= true display-wireframe) (draw-wireframe g poly) nil)
     (.setColor g color)
     (.fillPolygon g poly)))
 
@@ -64,8 +71,8 @@
 (defn -main[& args]
   (let [frame (new JFrame)
         top-panel (new JPanel)
-        ;mesh (import-mesh-from "spaceship.obj")
-        mesh mesh-cube
+        mesh (import-mesh-from "spaceship.obj")
+        ;mesh mesh-cube
         canvas (create-canvas (mesh-to-display mesh 0))
         timer (new Timer repaint-millis nil)]
     (.setPreferredSize frame (new Dimension (:width window-size) (:height window-size)))
