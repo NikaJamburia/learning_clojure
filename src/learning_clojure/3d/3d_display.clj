@@ -4,7 +4,7 @@
             [learning-clojure.3d.3d-import :refer :all]
             [learning-clojure.3d.3d-util :refer :all])
   (:import (javax.swing JFrame JPanel Timer)
-           (java.awt Dimension Color Polygon)
+           (java.awt Dimension Color Polygon Toolkit)
            (java.awt.event ActionListener)))
 
 (def start-millis (System/currentTimeMillis))
@@ -49,6 +49,8 @@
   (.removeAll top-panel)
   (.revalidate top-panel)
   (.repaint top-panel)
+  (if (= (System/getProperty "os.name") "Linux")
+     (.sync (Toolkit/getDefaultToolkit)))
   (.setBackground canvas (Color/BLACK))
   (.add top-panel canvas)
   (.setVisible top-panel true))
@@ -62,7 +64,7 @@
 (defn -main[& args]
   (let [frame (new JFrame)
         top-panel (new JPanel)
-        ;mesh (import-mesh-from "teapot.obj")
+        ;mesh (import-mesh-from "spaceship.obj")
         mesh mesh-cube
         canvas (create-canvas (mesh-to-display mesh 0))
         timer (new Timer repaint-millis nil)]
